@@ -12,7 +12,7 @@ if not api_key:
     st.error("OpenAI API Key not configured. Please add it to Streamlit secrets.")
     st.stop()
 
-uploaded_file = st.file_input("Choose a Medical PDF", type="pdf")
+uploaded_file = st.file_uploader("Choose a Medical PDF", type="pdf")
 
 if uploaded_file and api_key:
     # Save file temporarily
