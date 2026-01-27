@@ -30,6 +30,10 @@ if uploaded_file and api_key:
     if user_query:
         os.environ["OPENAI_API_KEY"] = api_key
         llm = ChatOpenAI(model="gpt-4o-mini")
-        response = llm.invoke(f"Context: {context}\n\nQuestion: {user_query}")
-        st.write("### AI Response:")
-        st.info(response.content)
+        try:
+            response = llm.invoke(f"Context: {context}\n\nQuestion: {user_query}")
+            st.write("### AI Response:")
+            st.info(response.content)
+        except Exception as e:
+            st.error(f"Error processing request: {str(e)}")
+            st.write("This may be due to API rate limits or invalid API key. Please try again later.")
