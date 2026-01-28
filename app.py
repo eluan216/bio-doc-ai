@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from src.styles import apply_theme
+from src.styles import apply_custom_css
 from src.engine import load_pdf, initialize_llm, query_document
 from src.utils import save_temp_pdf, cleanup_temp_file, validate_api_key
 
@@ -8,7 +8,7 @@ from src.utils import save_temp_pdf, cleanup_temp_file, validate_api_key
 st.set_page_config(page_title="Bio-Doc AI Pro", page_icon="🩺", layout="wide")
 
 # --- APPLY CUSTOM THEME ---
-apply_theme(st)
+apply_custom_css()
 
 # --- SIDEBAR: Settings ---
 with st.sidebar:

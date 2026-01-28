@@ -2,6 +2,8 @@
 Centralized UI/UX styling and custom CSS components
 """
 
+import streamlit as st
+
 CUSTOM_CSS = """
     <style>
     /* Global App Background */
@@ -32,6 +34,12 @@ CUSTOM_CSS = """
     </style>
     """
 
-def apply_theme(st):
-    """Apply custom theme to Streamlit app"""
+
+def apply_custom_css():
+    """Apply custom CSS styling to Streamlit app"""
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+
+def apply_theme(st):
+    """Legacy function - maintained for backwards compatibility"""
+    apply_custom_css()
