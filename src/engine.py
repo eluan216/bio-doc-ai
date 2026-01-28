@@ -25,3 +25,27 @@ def query_document(llm: ChatOpenAI, context: str, question: str) -> str:
     """Query document context with LLM"""
     response = llm.invoke(f"Context: {context}\n\nQuestion: {question}")
     return response.content
+
+
+def get_ai_response(file_path: str, user_query: str, api_key: str) -> str:
+    """
+    End-to-end function: Load PDF and get AI response
+    
+    Args:
+        file_path: Path to PDF file
+        user_query: User's question
+        api_key: OpenAI API key
+        
+    Returns:
+        AI-generated response based on document context
+    """
+    # Load PDF and extract context
+    context = load_pdf(file_path, max_pages=5)
+    
+    # Initialize LLM
+    llm = initialize_llm(api_key)
+    
+    # Query document with LLM
+    response = query_document(llm, context, user_query)
+    
+    return response
