@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 from src.styles import apply_custom_css
-from src.engine import load_pdf, initialize_llm, query_document
-from src.utils import save_temp_pdf, cleanup_temp_file, validate_api_key
+from src.engine import get_ai_response
+from src.utils import save_temp_pdf
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Bio-Doc AI Pro", page_icon="🩺", layout="wide")
@@ -19,7 +19,7 @@ with st.sidebar:
     st.info("B.Sc. Biomedical Tech (UNIPORT) Portfolio Project")
 
 # --- MAIN UI ---
-st.title("🩺 Bio-Doc AI Assistant")
+st.title("🩺 Bio-Doc AI Pro")
 st.caption("Professional Medical Document Intelligence Platform")
 
 # --- METRICS ROW (Visual Traction) ---
@@ -40,11 +40,10 @@ with col1:
     st.subheader("📁 Upload Document")
     uploaded_file = st.file_uploader("Upload a Medical PDF", type="pdf", label_visibility="collapsed")
     
-    context = None
+    file_path = None
     if uploaded_file and api_key:
         with st.spinner("Analyzing document..."):
             file_path = save_temp_pdf(uploaded_file)
-            context = load_pdf(file_path)
             st.success("Analysis Complete!")
             st.button("📄 Generate Executive Summary", type="secondary")
 
@@ -58,6 +57,8 @@ with col2:
     if prompt := st.chat_input("Ask about the clinical data..."):
         if not api_key:
             st.error("Please enter your API Key in the sidebar.")
+        elif not file_path:
+            st.error("Please upload a PDF document first.")
         else:
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
@@ -65,8 +66,7 @@ with col2:
 
             with st.chat_message("assistant"):
                 try:
-                    llm = initialize_llm(api_key)
-                    response_text = query_document(llm, context, prompt)
+                    response_text = get_ai_response(file_path, prompt, api_key)
                     st.markdown(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 except Exception as e:
