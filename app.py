@@ -1,41 +1,14 @@
 import streamlit as st
-from langchain_openai import ChatOpenAI
-from langchain_community.document_loaders import PyPDFLoader
 import os
+from src.styles import apply_theme
+from src.engine import load_pdf, initialize_llm, query_document
+from src.utils import save_temp_pdf, cleanup_temp_file, validate_api_key
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Bio-Doc AI Pro", page_icon="🩺", layout="wide")
 
-# --- CUSTOM CSS ---
-st.markdown("""
-    <style>
-    /* Global App Background */
-    .stApp {
-        background: linear-gradient(to right, #ffffff, #f0f7ff);
-    }
-    
-    /* Header Styling */
-    h1 {
-        color: #1E3A8A; /* Deep Navy Medical Blue */
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-    }
-
-    /* Card-like containers for Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e0e0e0;
-    }
-
-    /* Chat Bubble Styling */
-    .stChatMessage {
-        border-radius: 15px;
-        padding: 15px;
-        margin-bottom: 10px;
-        box-shadow: 0px 2px 10px rgba(0,0,0,0.05);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# --- APPLY CUSTOM THEME ---
+apply_theme(st)
 
 # --- SIDEBAR: Settings ---
 with st.sidebar:
@@ -67,13 +40,11 @@ with col1:
     st.subheader("📁 Upload Document")
     uploaded_file = st.file_uploader("Upload a Medical PDF", type="pdf", label_visibility="collapsed")
     
+    context = None
     if uploaded_file and api_key:
         with st.spinner("Analyzing document..."):
-            with open("temp.pdf", "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            loader = PyPDFLoader("temp.pdf")
-            pages = loader.load_and_split()
-            context = "\n".join([p.page_content for p in pages[:5]])
+            file_path = save_temp_pdf(uploaded_file)
+            context = load_pdf(file_path)
             st.success("Analysis Complete!")
             st.button("📄 Generate Executive Summary", type="secondary")
 
@@ -94,11 +65,10 @@ with col2:
 
             with st.chat_message("assistant"):
                 try:
-                    os.environ["OPENAI_API_KEY"] = api_key
-                    llm = ChatOpenAI(model="gpt-4o-mini")
-                    response = llm.invoke(f"Context: {context}\n\nQuestion: {prompt}")
-                    st.markdown(response.content)
-                    st.session_state.messages.append({"role": "assistant", "content": response.content})
+                    llm = initialize_llm(api_key)
+                    response_text = query_document(llm, context, prompt)
+                    st.markdown(response_text)
+                    st.session_state.messages.append({"role": "assistant", "content": response_text})
                 except Exception as e:
                     st.error(f"Error processing request: {str(e)}")
                     st.write("This may be due to API rate limits or invalid API key. Please try again later.")
