@@ -16,6 +16,8 @@ with st.sidebar:
     st.title("Settings")
     # Try to get API key from environment first (for Streamlit Cloud), fall back to user input
     api_key = os.getenv("OPENAI_API_KEY") or st.text_input("Enter OpenAI API Key", type="password", help="Get your key at platform.openai.com")
+    # Toggle for vector search (FAISS). Disable to avoid embedding API calls on free tier.
+    use_vector_search = st.checkbox("Use FAISS vector search (may incur embedding calls)", value=False, help="Disable to avoid OpenAI embedding costs on free tier")
     st.info("B.Sc. Biomedical Tech (UNIPORT) Portfolio Project")
 
 # --- MAIN UI ---
@@ -69,9 +71,14 @@ with col2:
 
             with st.chat_message("assistant"):
                 try:
-                    response_text = get_ai_response(st.session_state.file_path, prompt, api_key)
+                    response_text = get_ai_response(
+                        st.session_state.file_path,
+                        prompt,
+                        api_key,
+                        use_vector_search=use_vector_search,
+                    )
                     st.markdown(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 except Exception as e:
                     st.error(f"Error processing request: {str(e)}")
-                    st.write("This may be due to API rate limits or invalid API key. Please try again later.")
+                    st.write("This may be due to API rate limits or invalid API key. Try disabling FAISS vector search in the sidebar or use a different API key.")
