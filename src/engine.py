@@ -7,7 +7,7 @@ semantic document analysis using LangChain, OpenAI, and FAISS.
 
 import os
 import logging
-from typing import Optional, List
+from typing import List
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS

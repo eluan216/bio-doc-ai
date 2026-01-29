@@ -33,6 +33,9 @@ st.divider()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+if "file_path" not in st.session_state:
+    st.session_state.file_path = None
+
 # Layout: Two columns for File Upload and Chat
 col1, col2 = st.columns([1, 2], gap="large")
 
@@ -40,10 +43,10 @@ with col1:
     st.subheader("📁 Upload Document")
     uploaded_file = st.file_uploader("Upload a Medical PDF", type="pdf", label_visibility="collapsed")
     
-    file_path = None
     if uploaded_file and api_key:
         with st.spinner("Analyzing document..."):
             file_path = save_temp_pdf(uploaded_file)
+            st.session_state.file_path = file_path
             st.success("Analysis Complete!")
             st.button("📄 Generate Executive Summary", type="secondary")
 
@@ -57,7 +60,7 @@ with col2:
     if prompt := st.chat_input("Ask about the clinical data..."):
         if not api_key:
             st.error("Please enter your API Key in the sidebar.")
-        elif not file_path:
+        elif not st.session_state.file_path:
             st.error("Please upload a PDF document first.")
         else:
             st.session_state.messages.append({"role": "user", "content": prompt})
@@ -66,7 +69,7 @@ with col2:
 
             with st.chat_message("assistant"):
                 try:
-                    response_text = get_ai_response(file_path, prompt, api_key)
+                    response_text = get_ai_response(st.session_state.file_path, prompt, api_key)
                     st.markdown(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 except Exception as e:

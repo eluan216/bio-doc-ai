@@ -5,7 +5,6 @@ File handling, validation, and compliance utilities
 import os
 import logging
 from pathlib import Path
-from typing import Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
