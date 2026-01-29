@@ -8,3 +8,6 @@ faiss-cpu
 pytest
 pytest-cov
 flake8
+mypy
+bandit
+safety
