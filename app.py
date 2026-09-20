@@ -1,34 +1,47 @@
-import streamlit as st
 import os
+
+import streamlit as st
+
 from src.styles import apply_custom_css
-from src.engine import get_ai_response
 from src.utils import save_temp_pdf
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="Bio-Doc AI Pro", page_icon="🩺", layout="wide")
+# Import engine lazily so the UI can still load if LangChain is missing
+try:
+    from src.engine import get_ai_response
+except ImportError as import_err:
+    get_ai_response = None
+    _import_error = import_err
+else:
+    _import_error = None
 
-# --- APPLY CUSTOM THEME ---
+st.set_page_config(page_title="Bio-Doc AI", page_icon="🩺", layout="wide")
 apply_custom_css()
 
-# --- SIDEBAR: Settings ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3063/3063176.png", width=100)
     st.title("Settings")
-    # Try to get API key from environment first (for Streamlit Cloud), fall back to user input
-    api_key = os.getenv("OPENAI_API_KEY") or st.text_input("Enter OpenAI API Key", type="password", help="Get your key at platform.openai.com")
-    # Toggle for vector search (FAISS). Disable to avoid embedding API calls on free tier.
-    use_vector_search = st.checkbox("Use FAISS vector search (may incur embedding calls)", value=False, help="Disable to avoid OpenAI embedding costs on free tier")
-    st.info("B.Sc. Biomedical Tech (UNIPORT) Portfolio Project")
+    api_key = os.getenv("OPENAI_API_KEY") or st.text_input(
+        "Enter OpenAI API Key",
+        type="password",
+        help="Get your key at platform.openai.com",
+    )
+    use_vector_search = st.checkbox(
+        "Use FAISS vector search (uses embedding API calls)",
+        value=False,
+        help="Disable to avoid OpenAI embedding costs on free tier",
+    )
+    st.caption("Portfolio project · not a medical device")
 
-# --- MAIN UI ---
-st.title("🩺 Bio-Doc AI Pro")
-st.caption("Professional Medical Document Intelligence Platform")
+st.title("🩺 Bio-Doc AI")
+st.caption("RAG demo for biomedical PDFs — grounded answers from your documents")
 
-# --- METRICS ROW (Visual Traction) ---
-col1, col2, col3 = st.columns(3)
-col1.metric("Docs Analyzed", "1,240+")
-col2.metric("Accuracy Rate", "99.2%")
-col3.metric("Avg. Speed", "1.4s")
+if _import_error is not None:
+    st.error(
+        "Dependencies are not installed. From the project root run:\n\n"
+        "`pip install -r requirements.txt`\n\n"
+        f"Details: {_import_error}"
+    )
+    st.stop()
 
 st.divider()
 
@@ -38,30 +51,29 @@ if "messages" not in st.session_state:
 if "file_path" not in st.session_state:
     st.session_state.file_path = None
 
-# Layout: Two columns for File Upload and Chat
 col1, col2 = st.columns([1, 2], gap="large")
 
 with col1:
     st.subheader("📁 Upload Document")
-    uploaded_file = st.file_uploader("Upload a Medical PDF", type="pdf", label_visibility="collapsed")
-    
+    uploaded_file = st.file_uploader(
+        "Upload a Medical PDF", type="pdf", label_visibility="collapsed"
+    )
+
     if uploaded_file and api_key:
-        with st.spinner("Analyzing document..."):
+        with st.spinner("Preparing document..."):
             file_path = save_temp_pdf(uploaded_file)
             st.session_state.file_path = file_path
-            st.success("Analysis Complete!")
-            st.button("📄 Generate Executive Summary", type="secondary")
+            st.success("Document ready")
 
 with col2:
-    st.subheader("💬 Clinical Consultation")
-    # Display Chat History
+    st.subheader("💬 Ask the document")
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask about the clinical data..."):
         if not api_key:
-            st.error("Please enter your API Key in the sidebar.")
+            st.error("Please enter your OpenAI API key in the sidebar (or set OPENAI_API_KEY).")
         elif not st.session_state.file_path:
             st.error("Please upload a PDF document first.")
         else:
@@ -78,7 +90,13 @@ with col2:
                         use_vector_search=use_vector_search,
                     )
                     st.markdown(response_text)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": response_text}
+                    )
                 except Exception as e:
-                    st.error(f"Error processing request: {str(e)}")
-                    st.write("This may be due to API rate limits or invalid API key. Try disabling FAISS vector search in the sidebar or use a different API key.")
+                    st.error(f"Error processing request: {e}")
+                    st.info(
+                        "Check your API key, network access to OpenAI, and that "
+                        "`pip install -r requirements.txt` completed successfully. "
+                        "You can also turn off FAISS vector search in the sidebar."
+                    )
