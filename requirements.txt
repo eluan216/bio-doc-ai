@@ -1,12 +1,16 @@
-streamlit
-langchain
-langchain-core
-langchain-text-splitters
-pypdf
-faiss-cpu
-pytest
-pytest-cov
-flake8
-mypy
-bandit
-safety
+# Core app
+streamlit>=1.28.0
+pypdf>=4.0.0
+faiss-cpu>=1.7.4
+
+# LangChain RAG stack (required by src/engine.py)
+langchain>=0.2.0
+langchain-core>=0.2.0
+langchain-community>=0.2.0
+langchain-openai>=0.1.0
+langchain-text-splitters>=0.2.0
+openai>=1.0.0
+
+# Dev / quality (optional for running the app)
+pytest>=7.0.0
+pytest-cov>=4.0.0
