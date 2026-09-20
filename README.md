@@ -1,65 +1,15 @@
 # Bio-Doc AI: Clinical Document Intelligence
 
-**Scalable RAG architecture for biomedical document analysis**
+Scalable RAG architecture for biomedical document analysis.
 
 **Author:** Oguma Eluanatein Odo  
 **Focus:** Healthcare AI · Retrieval-Augmented Generation · Clinical documents
 
----
-
-## The Problem
-
-Clinicians and researchers face a growing volume of papers, guidelines, and internal documents. Finding precise, source-backed answers quickly is difficult without specialized tooling.
-
-## The Solution
-
-**Bio-Doc AI** is a Retrieval-Augmented Generation (RAG) system for medical and biomedical documents. Upload PDFs, ask questions, and receive answers grounded in the uploaded content with source tracking.
-
-### Key Capabilities
-
-- End-to-end workflow: PDF ingestion → chunking → vector index → grounded answers
-- Semantic retrieval with FAISS
-- Source-aware responses (context from your documents)
-- Privacy-minded design: documents processed for the session; API keys via environment variables
-- Designed as a portfolio / educational demonstration of clinical RAG patterns
-
-> **Note:** This is a portfolio project for demonstrating RAG engineering skills. It is **not** a medical device and must not be used for clinical decision-making.
+> **Not a medical device.** Portfolio / educational project only. Do not use for clinical decisions.
 
 ---
 
-## Technical Stack
-
-| Component       | Technology              |
-|----------------|-------------------------|
-| Language       | Python 3.10+            |
-| LLM            | OpenAI (configurable)   |
-| RAG framework  | LangChain               |
-| Vector store   | FAISS                   |
-| UI             | Streamlit               |
-| PDF parsing    | PyPDF / related loaders |
-
-### Project layout
-
-```text
-bio-doc-ai/
-├── .github/workflows/   # CI
-├── .streamlit/          # Theme config
-├── data/samples/        # Sample PDFs for demo
-├── src/
-│   ├── engine.py        # RAG pipeline & vector logic
-│   ├── styles.py        # UI components
-│   └── utils.py         # Document handling
-├── tests/
-├── app.py               # Streamlit entry point
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Getting Started
-
-### Local
+## Quick start
 
 ```bash
 git clone https://github.com/eluan216/bio-doc-ai.git
@@ -72,42 +22,66 @@ export OPENAI_API_KEY="your-key-here"
 streamlit run app.py
 ```
 
-### Streamlit Cloud
+**Required to run end-to-end:**
 
-1. Fork the repository
-2. Connect to [Streamlit Cloud](https://share.streamlit.io)
-3. Add `OPENAI_API_KEY` as a secret
-4. Deploy with main file `app.py`
+1. Packages in `requirements.txt` (includes `langchain-openai`, `langchain-community`, `faiss-cpu`, …)
+2. A valid **OpenAI API key** (`OPENAI_API_KEY` or sidebar input)
+
+Without the key, the UI still loads; queries will prompt you to add one.
 
 ---
 
-## Testing
+## What it does
 
-```bash
-pytest tests/ -v
-pytest tests/ --cov=src
+- PDF upload → text extraction / optional FAISS retrieval → grounded answers via OpenAI
+- Toggle vector search off to avoid embedding API calls on free-tier budgets
+- Session-based document handling (no long-term document storage assumed)
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|------------|
+| UI | Streamlit |
+| RAG | LangChain |
+| LLM / embeddings | OpenAI (`gpt-4o-mini`, OpenAI embeddings) |
+| Vector store | FAISS |
+| PDF | PyPDF / LangChain loaders |
+
+---
+
+## Layout
+
+```text
+bio-doc-ai/
+├── src/
+│   ├── engine.py    # RAG pipeline
+│   ├── styles.py
+│   └── utils.py
+├── tests/
+├── app.py
+├── requirements.txt
+└── README.md
 ```
 
-CI runs via GitHub Actions on push.
-
 ---
 
-## Security & Privacy Notes
+## Tests
 
-- API keys kept in environment variables / Streamlit secrets
-- Designed for session-based document use (no long-term document storage assumed)
-- Suitable for demonstrating architecture; production clinical use would require formal validation, access control, and compliance review
+```bash
+pip install -r requirements.txt
+pytest tests/ -v
+```
+
+Some tests skip if no sample PDF or live OpenAI key is available.
 
 ---
 
 ## Author
 
 **Oguma Eluanatein Odo**  
-B.Sc. Biomedical Technology  
-Focus: Healthcare interoperability & clinical AI  
 [LinkedIn](https://linkedin.com/in/eluanatein-oguma-5552571b6) · [GitHub](https://github.com/eluan216) · ogumaeluan@gmail.com
-
----
 
 ## License
 
